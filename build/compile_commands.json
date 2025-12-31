@@ -1,0 +1,8 @@
+[
+{
+  "directory": "C:/Users/amads/Desktop/myProject/gpx_cpp/build",
+  "command": "C:\\Users\\amads\\Downloads\\mingw\\mingw64\\bin\\g++.exe  @CMakeFiles/gpx_cpp.dir/includes_CXX.rsp -g -std=gnu++17 -o CMakeFiles\\gpx_cpp.dir\\src\\gpx_parser.cpp.obj -c C:\\Users\\amads\\Desktop\\myProject\\gpx_cpp\\src\\gpx_parser.cpp",
+  "file": "C:/Users/amads/Desktop/myProject/gpx_cpp/src/gpx_parser.cpp",
+  "output": "CMakeFiles/gpx_cpp.dir/src/gpx_parser.cpp.obj"
+}
+]
