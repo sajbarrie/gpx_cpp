@@ -1,2 +1,0 @@
-C:\Users\amads\Downloads\mingw\mingw64\bin\ar.exe qc libgpx_cpp.a CMakeFiles/gpx_cpp.dir/src/gpx_parser.cpp.obj
-C:\Users\amads\Downloads\mingw\mingw64\bin\ranlib.exe libgpx_cpp.a

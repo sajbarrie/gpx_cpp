@@ -1,3 +1,0 @@
-C:/Users/amads/Desktop/myProject/gpx_cpp/build/CMakeFiles/gpx_cpp.dir
-C:/Users/amads/Desktop/myProject/gpx_cpp/build/CMakeFiles/edit_cache.dir
-C:/Users/amads/Desktop/myProject/gpx_cpp/build/CMakeFiles/rebuild_cache.dir
