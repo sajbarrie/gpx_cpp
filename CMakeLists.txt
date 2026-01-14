@@ -10,9 +10,21 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 add_library(gpx_cpp
     src/gpx_parser.cpp
+    src/document.cpp
+    src/parser.cpp
 )
 
 target_include_directories(gpx_cpp
     PUBLIC
         ${PROJECT_SOURCE_DIR}/include
 )
+
+add_executable(type_check
+    examples/type_check.cpp
+)
+
+target_link_libraries(type_check
+    PRIVATE gpx_cpp
+)
+
+
