@@ -1,6 +1,6 @@
 #pragma once
 #include <string>
-#include "document.hpp"
+#include "document.h"
 
 namespace gpx 
 {

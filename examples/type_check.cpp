@@ -1,6 +1,6 @@
 #include <gpx/gpx_types.h>
-#include <gpx/document.hpp>
-#include <gpx/parser.hpp>
+#include <gpx/document.h>
+#include <gpx/parser.h>
 #include <iostream>
 
 int main() 

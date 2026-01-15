@@ -5,6 +5,7 @@
 #include <optional>
 #include <cstdint>
 
-namespace gpx {
+namespace gpx 
+{
 
 }
