@@ -5,11 +5,13 @@ namespace gpx
 {
     class Document 
     {
-    public:
-        // --- Data access (read-only) ---
-        std::vector<Waypoint> waypoints() const noexcept;
-        std::vector<Route>    routes() const noexcept;
-        std::vector<Track>    tracks() const noexcept;
+        public:
+            // --- Data access (read-only) ---
+
+            const std::vector<Waypoint>& waypoints() const noexcept;
+            const std::vector<Route>&    routes() const noexcept;
+            const std::vector<Track>&    tracks() const noexcept;
+
 
         // --- Data mutation (parser use only) ---
         void add_waypoint(const Waypoint& wp);
@@ -20,9 +22,9 @@ namespace gpx
         void clear();
         bool empty() const noexcept;
 
-    private:
-        std::vector<Waypoint> waypoints_;
-        std::vector<Route>    routes_;
-        std::vector<Track>    tracks_;
-    };
+        private:
+            std::vector<Waypoint> waypoints_;
+            std::vector<Route>    routes_;
+            std::vector<Track>    tracks_;
+        };
 }
