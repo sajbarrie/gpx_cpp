@@ -12,7 +12,11 @@ static void printTime(const std::optional<gpx::TimeMs>& t)
 
     std::time_t sec = static_cast<std::time_t>(*t / 1000);
     std::tm utc{};
+#if defined(_WIN32)
     gmtime_s(&utc, &sec);
+#else
+    gmtime_r(&sec, &utc);
+#endif
 
     std::cout << std::put_time(&utc, "%Y-%m-%d %H:%M:%S UTC");
 }
