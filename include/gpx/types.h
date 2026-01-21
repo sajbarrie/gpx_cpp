@@ -1,44 +1,50 @@
 #pragma once
-#include <cstdint>
-#include <string>
+
+#include <optional>
 #include <vector>
+#include <string>
+#include <cstdint>
 
 namespace gpx 
 {
 
-    struct Point 
+    // Time stored as milliseconds since Unix epoch (UTC)
+    using TimeMs = std::int64_t;
+
+    struct Waypoint
     {
-        double lat = 0.0;
-        double lon = 0.0;
-        double ele = 0.0;
-        std::uint64_t time_ms = 0;
+        double latitude = 0.0;      // required
+        double longitude = 0.0;     // required
+        std::optional<double> elevation;   // meters
+        std::optional<TimeMs> time;         // ms since epoch
     };
 
-    struct Waypoint 
+    struct TrackSegment
     {
-        Point point;
-        std::string name;
+        std::vector<Waypoint> points;
     };
 
-    struct TrackPoint : public Point {};
-
-    struct TrackSegment 
+    struct Track
     {
-        std::vector<TrackPoint> points;
-    };
-
-    struct Track 
-    {
-        std::string name;
+        std::optional<std::string> name;
         std::vector<TrackSegment> segments;
     };
 
-    struct RoutePoint : public Point {};
-
-    struct Route 
+    struct Route
     {
-        std::string name;
-        std::vector<RoutePoint> points;
+        std::optional<std::string> name;
+        std::vector<Waypoint> points;
+    };
+
+    struct Metadata
+    {
+        std::optional<std::string> name;
+        std::optional<TimeMs> time;
+        std::optional<std::string> description;
     };
 
 } // namespace gpx
+
+
+
+

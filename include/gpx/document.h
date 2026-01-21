@@ -1,30 +1,36 @@
 #pragma once
-#include "types.h"
+
+#include <vector>
+#include "gpx/types.h"
 
 namespace gpx 
 {
-    class Document 
+
+    class Document
     {
-        public:
-            // --- Data access (read-only) ---
+    public:
+        // ---- Read-only API ----
+        const Metadata& metadata()  const noexcept;
+        const std::vector<Waypoint>& waypoints() const noexcept;
+        const std::vector<Route>&    routes()    const noexcept;
+        const std::vector<Track>&    tracks()    const noexcept;
 
-            const std::vector<Waypoint>& waypoints() const noexcept;
-            const std::vector<Route>&    routes() const noexcept;
-            const std::vector<Track>&    tracks() const noexcept;
+        bool empty() const noexcept;
 
+        // ---- Parser-only mutation ----
+        void clear();
 
-        // --- Data mutation (parser use only) ---
+        void set_metadata(const Metadata& md);
+
         void add_waypoint(const Waypoint& wp);
         void add_route(const Route& rte);
         void add_track(const Track& trk);
 
-        // --- Utilities ---
-        void clear();
-        bool empty() const noexcept;
+    private:
+        Metadata metadata_;
+        std::vector<Waypoint> waypoints_;
+        std::vector<Route>    routes_;
+        std::vector<Track>    tracks_;
+    };
 
-        private:
-            std::vector<Waypoint> waypoints_;
-            std::vector<Route>    routes_;
-            std::vector<Track>    tracks_;
-        };
-}
+} // namespace gpx

@@ -11,12 +11,13 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 add_library(gpx_cpp
     src/gpx_parser.cpp
     src/document.cpp
-    src/parser.cpp
+    external/tinyxml2/tinyxml2.cpp
 )
 
 target_include_directories(gpx_cpp
     PUBLIC
         ${PROJECT_SOURCE_DIR}/include
+        ${PROJECT_SOURCE_DIR}/external/tinyxml2
 )
 
 add_executable(type_check

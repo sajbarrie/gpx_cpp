@@ -1,6 +1,6 @@
-#include <gpx/gpx_types.h>
+#include <gpx/types.h>
 #include <gpx/document.h>
-#include <gpx/parser.h>
+#include <gpx/gpx_parser.h>
 #include <iostream>
 
 int main() 
@@ -17,11 +17,10 @@ int main()
     gpx::Parser parser;
     gpx::Document doc;
 
-    std::string error;
-    bool ok = parser.loadFromFile("test.gpx", doc, &error);
+    bool ok = parser.loadFromFile("test.gpx", doc);
 
     if (!ok) 
     {
-        std::cout << "Expected failure: " << error << std::endl;
+        std::cout << "Expected failure: " << parser.lastError() << std::endl;
     }
 }

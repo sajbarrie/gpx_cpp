@@ -3,50 +3,57 @@
 namespace gpx 
 {
 
-    // ---- Accessors ----
+    const Metadata& Document::metadata() const noexcept
+    {
+        return metadata_;
+    }
 
-    const std::vector<Waypoint>& Document::waypoints() const noexcept 
+    const std::vector<Waypoint>& Document::waypoints() const noexcept
     {
         return waypoints_;
     }
 
-    const std::vector<Route>& Document::routes() const noexcept 
+    const std::vector<Route>& Document::routes() const noexcept
     {
         return routes_;
     }
 
-    const std::vector<Track>& Document::tracks() const noexcept 
+    const std::vector<Track>& Document::tracks() const noexcept
     {
         return tracks_;
     }
 
-    // ---- Modifiers ----
-
-    void Document::add_waypoint(const Waypoint& wp) 
+    bool Document::empty() const noexcept
     {
-        waypoints_.push_back(wp);
+        return waypoints_.empty() && routes_.empty() && tracks_.empty();
     }
 
-    void Document::add_route(const Route& rte) 
+    void Document::clear()
     {
-        routes_.push_back(rte);
-    }
-
-    void Document::add_track(const Track& trk) 
-    {
-        tracks_.push_back(trk);
-    }
-
-    void Document::clear() 
-    {
+        metadata_ = Metadata{};
         waypoints_.clear();
         routes_.clear();
         tracks_.clear();
     }
 
-    bool Document::empty() const noexcept 
+    void Document::set_metadata(const Metadata& md)
     {
-        return waypoints_.empty() && routes_.empty() && tracks_.empty();
+        metadata_ = md;
+    }
+
+    void Document::add_waypoint(const Waypoint& wp)
+    {
+        waypoints_.push_back(wp);
+    }
+
+    void Document::add_route(const Route& rte)
+    {
+        routes_.push_back(rte);
+    }
+
+    void Document::add_track(const Track& trk)
+    {
+        tracks_.push_back(trk);
     }
 
 } // namespace gpx
