@@ -10,11 +10,11 @@ int main()
     doc.waypoints.push_back(p);
     return 0;*/
 
-    /* 2gpx::Document doc;
+    /* 2 gpx::Document doc;
     doc.clear();
     return doc.empty() ? 0 : 1; */
     
-    gpx::Parser parser;
+    /* 3 gpx::Parser parser;
     gpx::Document doc;
 
     bool ok = parser.loadFromFile("test.gpx", doc);
@@ -22,5 +22,14 @@ int main()
     if (!ok) 
     {
         std::cout << "Expected failure: " << parser.lastError() << std::endl;
-    }
+    } */
+
+    gpx::Document doc;
+    gpx::Parser p;
+
+    if (!p.loadFromFile("test.gpx", doc))
+        std::cout << p.lastError();
+    else
+        std::cout << doc.tracks().size();
+
 }
