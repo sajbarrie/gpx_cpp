@@ -28,4 +28,17 @@ target_link_libraries(type_check
     PRIVATE gpx_cpp
 )
 
+add_executable(gpx_inspect
+    examples/gpx_inspect.cpp
+)
+
+target_link_libraries(gpx_inspect
+    PRIVATE gpx_cpp
+)
+
+enable_testing()
+add_subdirectory(tests)
+
+
+
 
