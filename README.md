@@ -1,5 +1,5 @@
 # gpx_cpp
-A lightweight, modern C++17 library for parsing GPX files, handling ISO-8601 timestamps, and performing basic interpolation of geospatial track points.
+A lightweight, modern C++17 library for parsing GPX files, and handling ISO-8601 timestamps.
 
 The project aims to provide:
 - Clean and understandable C++ APIs
@@ -14,7 +14,6 @@ The project aims to provide:
 - Extract latitude, longitude, elevation, and timestamps
 - Convert ISO-8601 timestamps to epoch milliseconds
 - Store points in a structured format
-- Query points by timestamp
 
 ## Build
 
