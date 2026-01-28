@@ -9,7 +9,6 @@ namespace gpx
     class Document
     {
     public:
-        // ---- Read-only API ----
         const Metadata& metadata()  const noexcept;
         const std::vector<Waypoint>& waypoints() const noexcept;
         const std::vector<Route>&    routes()    const noexcept;
@@ -17,7 +16,6 @@ namespace gpx
 
         bool empty() const noexcept;
 
-        // ---- Parser-only mutation ----
         void clear();
 
         void set_metadata(const Metadata& md);
@@ -33,4 +31,4 @@ namespace gpx
         std::vector<Track>    tracks_;
     };
 
-} // namespace gpx
+}

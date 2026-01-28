@@ -56,4 +56,4 @@ namespace gpx
         tracks_.push_back(trk);
     }
 
-} // namespace gpx
+} 

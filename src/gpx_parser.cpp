@@ -1,7 +1,9 @@
 #include "gpx/gpx_parser.h"
 #include "gpx/document.h"
 #include "gpx/types.h"
-
+#include <fstream>
+#include <optional>
+#include <chrono>
 #include "tinyxml2.h"
 
 #include <sstream>
@@ -10,14 +12,15 @@
 
 using namespace tinyxml2;
 
-namespace gpx 
+namespace gpx
 {
-    static std::optional<TimeMs> parseTime(const char* text)
+
+    static std::optional<TimeMs> parseTime(const char* iso)
     {
-        if (!text) return std::nullopt;
+        if (!iso) return std::nullopt;
 
         std::tm tm{};
-        std::istringstream ss(text);
+        std::istringstream ss(iso);
         ss >> std::get_time(&tm, "%Y-%m-%dT%H:%M:%SZ");
         if (ss.fail()) return std::nullopt;
 
@@ -27,159 +30,159 @@ namespace gpx
         std::time_t t = timegm(&tm);
     #endif
 
+        if (t < 0) return std::nullopt;
         return static_cast<TimeMs>(t) * 1000;
     }
 
-    static std::optional<double> getOptionalDouble(XMLElement* parent, const char* name)
+    static XMLElement* child(XMLElement* parent, const char* name)
     {
-        if (auto* e = parent->FirstChildElement(name)) {
+        for (auto* e = parent->FirstChildElement(); e; e = e->NextSiblingElement())
+        {
+            if (std::strcmp(e->Name(), name) == 0) return e;
+        }
+        return nullptr;
+    }
+
+    static void parsePoint(XMLElement* el, Waypoint& out)
+    {
+        el->QueryDoubleAttribute("lat", &out.latitude);
+        el->QueryDoubleAttribute("lon", &out.longitude);
+
+        if (auto* e = child(el, "ele"))
+        {
             double v{};
             if (e->QueryDoubleText(&v) == XML_SUCCESS)
-                return v;
+                out.elevation = v;
         }
-        return std::nullopt;
+
+        if (auto* t = child(el, "time"))
+        {
+            out.time = parseTime(t->GetText());
+        }
     }
 
-    static std::optional<std::string> getOptionalString(XMLElement* parent, const char* name)
+    // -----------------------------
+    // Parser
+    // -----------------------------
+
+    bool Parser::loadFromStream(std::istream& input, Document& outDoc)
     {
-        if (auto* e = parent->FirstChildElement(name)) {
-            if (const char* t = e->GetText())
-                return std::string(t);
+        outDoc.clear();
+        m_lastError.clear();
+
+        std::ostringstream oss;
+        oss << input.rdbuf();
+        std::string xml = oss.str();
+
+        XMLDocument doc;
+        if (doc.Parse(xml.c_str()) != XML_SUCCESS)
+        {
+            m_lastError = "XML parse error";
+            return false;
         }
-        return std::nullopt;
-    }
 
-    static std::optional<TimeMs> getOptionalTime(XMLElement* parent)
-    {
-        if (auto* e = parent->FirstChildElement("time")) {
-            return parseTime(e->GetText());
+        auto* gpx = doc.RootElement();
+        if (!gpx || std::strcmp(gpx->Name(), "gpx") != 0)
+        {
+            m_lastError = "Missing <gpx> root element";
+            return false;
         }
-        return std::nullopt;
-    }
 
-    static Waypoint parsePoint(XMLElement* el)
-    {
-        Waypoint p;
+        // ---- metadata ----
+        if (auto* md = child(gpx, "metadata"))
+        {
+            Metadata meta;
 
-        el->QueryDoubleAttribute("lat", &p.latitude);
-        el->QueryDoubleAttribute("lon", &p.longitude);
+            if (auto* n = child(md, "name"))
+                if (n->GetText()) meta.name = n->GetText();
 
-        p.elevation = getOptionalDouble(el, "ele");
-        p.time      = getOptionalTime(el);
+            if (auto* t = child(md, "time"))
+                meta.time = parseTime(t->GetText());
 
-        return p;
+            if (auto* d = child(md, "desc"))
+                if (d->GetText()) meta.description = d->GetText();
+
+            outDoc.set_metadata(meta);
+        }
+
+        // ---- waypoints ----
+        for (auto* wpt = child(gpx, "wpt"); wpt; wpt = wpt->NextSiblingElement("wpt"))
+        {
+            Waypoint p{};
+            if (wpt->QueryDoubleAttribute("lat", &p.latitude) == XML_SUCCESS &&
+                wpt->QueryDoubleAttribute("lon", &p.longitude) == XML_SUCCESS)
+            {
+                parsePoint(wpt, p);
+                outDoc.add_waypoint(p);
+            }
+        }
+
+        // ---- routes ----
+        for (auto* rte = child(gpx, "rte"); rte; rte = rte->NextSiblingElement("rte"))
+        {
+            Route route;
+
+            if (auto* n = child(rte, "name"))
+                if (n->GetText()) route.name = n->GetText();
+
+            for (auto* pt = child(rte, "rtept"); pt; pt = pt->NextSiblingElement("rtept"))
+            {
+                Waypoint p{};
+                if (pt->QueryDoubleAttribute("lat", &p.latitude) == XML_SUCCESS &&
+                    pt->QueryDoubleAttribute("lon", &p.longitude) == XML_SUCCESS)
+                {
+                    parsePoint(pt, p);
+                    route.points.push_back(p);
+                }
+            }
+
+            if (!route.points.empty())
+                outDoc.add_route(route);
+        }
+
+        // ---- tracks ----
+        for (auto* trk = child(gpx, "trk"); trk; trk = trk->NextSiblingElement("trk"))
+        {
+            Track track;
+
+            if (auto* n = child(trk, "name"))
+                if (n->GetText()) track.name = n->GetText();
+
+            for (auto* seg = child(trk, "trkseg"); seg; seg = seg->NextSiblingElement("trkseg"))
+            {
+                TrackSegment ts;
+
+                for (auto* pt = child(seg, "trkpt"); pt; pt = pt->NextSiblingElement("trkpt"))
+                {
+                    Waypoint p{};
+                    if (pt->QueryDoubleAttribute("lat", &p.latitude) == XML_SUCCESS &&
+                        pt->QueryDoubleAttribute("lon", &p.longitude) == XML_SUCCESS)
+                    {
+                        parsePoint(pt, p);
+                        ts.points.push_back(p);
+                    }
+                }
+
+                if (!ts.points.empty())
+                    track.segments.push_back(std::move(ts));
+            }
+
+            if (!track.segments.empty())
+                outDoc.add_track(track);
+        }
+
+        return !outDoc.empty();
     }
 
     bool Parser::loadFromFile(const std::string& path, Document& outDoc)
     {
-        XMLDocument doc;
-        if (doc.LoadFile(path.c_str()) != XML_SUCCESS) 
+        std::ifstream file(path);
+        if (!file)
         {
-            m_lastError = "Failed to load XML file";
+            m_lastError = "Cannot open file: " + path;
             return false;
         }
-
-        XMLElement* root = doc.FirstChildElement("gpx");
-        if (!root) 
-        {
-            m_lastError = "Not a GPX file (missing <gpx>)";
-            return false;
-        }
-
-        outDoc.clear();
-
-        /* ---------- Metadata ---------- */
-
-        if (auto* md = root->FirstChildElement("metadata")) 
-        {
-            Metadata meta;
-            meta.name        = getOptionalString(md, "name");
-            meta.description = getOptionalString(md, "desc");
-            meta.time        = getOptionalTime(md);
-            outDoc.set_metadata(meta);
-        }
-
-        /* ---------- Waypoints ---------- */
-
-        for (auto* wpt = root->FirstChildElement("wpt");
-            wpt;
-            wpt = wpt->NextSiblingElement("wpt"))
-        {
-            outDoc.add_waypoint(parsePoint(wpt));
-        }
-
-        /* ---------- Routes ---------- */
-
-        for (auto* rte = root->FirstChildElement("rte");
-            rte;
-            rte = rte->NextSiblingElement("rte"))
-        {
-            Route route;
-            route.name = getOptionalString(rte, "name");
-
-            for (auto* rtept = rte->FirstChildElement("rtept");
-                rtept;
-                rtept = rtept->NextSiblingElement("rtept"))
-            {
-                route.points.push_back(parsePoint(rtept));
-            }
-
-            outDoc.add_route(route);
-        }
-
-        /* ---------- Tracks ---------- */
-
-        for (auto* trk = root->FirstChildElement("trk");
-            trk;
-            trk = trk->NextSiblingElement("trk"))
-        {
-            Track track;
-            track.name = getOptionalString(trk, "name");
-
-            for (auto* seg = trk->FirstChildElement("trkseg");
-                seg;
-                seg = seg->NextSiblingElement("trkseg"))
-            {
-                TrackSegment segment;
-
-                for (auto* trkpt = seg->FirstChildElement("trkpt");
-                    trkpt;
-                    trkpt = trkpt->NextSiblingElement("trkpt"))
-                {
-                    segment.points.push_back(parsePoint(trkpt));
-                }
-
-                track.segments.push_back(std::move(segment));
-            }
-
-            outDoc.add_track(track);
-        }
-
-        m_lastError.clear();
-        return true;
-    }
-
-    bool Parser::loadFromStream(std::istream& input, Document& outDoc)
-    {
-        std::stringstream buffer;
-        buffer << input.rdbuf();
-
-        XMLDocument doc;
-        if (doc.Parse(buffer.str().c_str()) != XML_SUCCESS) {
-            m_lastError = "Failed to parse XML stream";
-            return false;
-        }
-
-        XMLElement* root = doc.FirstChildElement("gpx");
-        if (!root) {
-            m_lastError = "Not a GPX file (missing <gpx>)";
-            return false;
-        }
-
-        outDoc.clear();
-        // Reuse same logic if you want — omitted for brevity
-        m_lastError.clear();
-        return true;
+        return loadFromStream(file, outDoc);
     }
 
     const std::string& Parser::lastError() const noexcept
@@ -187,4 +190,4 @@ namespace gpx
         return m_lastError;
     }
 
-} // namespace gpx
+} 
