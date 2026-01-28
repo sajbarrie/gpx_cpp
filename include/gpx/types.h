@@ -8,7 +8,6 @@
 namespace gpx 
 {
 
-    // Time stored as milliseconds since Unix epoch (UTC)
     using TimeMs = std::int64_t;
 
     struct Waypoint

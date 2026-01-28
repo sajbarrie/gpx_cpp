@@ -19,4 +19,4 @@ namespace gpx
         std::string m_lastError;
     };
 
-} // namespace gpx
+} 

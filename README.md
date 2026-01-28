@@ -3,7 +3,7 @@ A lightweight, modern C++17 library for parsing GPX files, and handling ISO-8601
 
 The project aims to provide:
 - Clean and understandable C++ APIs
-- No dependencies except TinyXML2 (optionally vendored)
+- No dependencies except TinyXML2
 - High-accuracy timestamp extraction
 - Track, route, and waypoint parsing
 - GoogleTest unit tests
